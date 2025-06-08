@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 from badminton_booking import MelbourneUniBadmintonBooking
+import pandas as pd
 
 # 直接写死用户名和密码
 USERNAME = "lwh895556373@gmail.com"
@@ -149,9 +150,59 @@ if st.session_state.is_logged_in:
                                                     end_minute -= 60
                                                 end_time = f"{end_hour:02d}:{end_minute:02d}"
                                                 day_slots.append(f"{start_time}-{end_time}")
-                                    if day_slots:
-                                        st.write(f"📅 {date_formatted}: {', '.join(day_slots)}")
-                                    else:
-                                        st.write(f"📅 {date_formatted}: 无可用时段")
+
+                                    with st.container():
+                                        st.markdown(f"#### 📅 {date_formatted}")
+                                        if day_slots:
+                                            cols = st.columns(min(4, len(day_slots)))
+                                            for i, slot in enumerate(day_slots):
+                                                with cols[i % len(cols)]:
+                                                    st.button(slot, key=f"{facility_id}-{date_formatted}-{slot}", help="可用时段", disabled=True)
+                                        else:
+                                            st.markdown("<span style='color:red;'>无可用时段</span>", unsafe_allow_html=True)
+
+                # ====== 新增：可视化时间表格（去重+自适应宽度） ======
+                time_slots = []
+                for h in range(8, 22):
+                    time_slots.append(f"{h:02d}:00")
+                    time_slots.append(f"{h:02d}:30")
+                time_slots.append("22:00")
+                date_list = [ (start_date + datetime.timedelta(days=i)).strftime('%Y-%m-%d') for i in range(days_count) ]
+                timetable = pd.DataFrame('', index=time_slots, columns=date_list)
+                for facility in facilities:
+                    facility_id = facility.get('ID', '')
+                    facility_name = facility.get('Name', '未知场地')
+                    if facility_id:
+                        availability_data = st.session_state.booking.get_facility_availability(
+                            facility_id, start_date_formatted, days_count
+                        )
+                        if availability_data and availability_data.get('availabilities'):
+                            availabilities = availability_data['availabilities']
+                            for day_data in availabilities:
+                                date_raw = day_data.get('Date', '')
+                                date_formatted = st.session_state.booking.parse_date_from_json(date_raw)
+                                booking_groups = day_data.get('BookingGroups', [])
+                                for group in booking_groups:
+                                    available_spots = group.get('AvailableSpots', [])
+                                    for spot in available_spots:
+                                        if not spot.get('IsDisabled', False):
+                                            time_info = spot.get('Time', {})
+                                            duration_info = spot.get('Duration', {})
+                                            start_hour = time_info.get('Hours', 0)
+                                            start_minute = time_info.get('Minutes', 0)
+                                            duration_hours = duration_info.get('TotalHours', 1)
+                                            slot_count = int(duration_hours * 2)
+                                            for i in range(slot_count):
+                                                slot_hour = start_hour + (start_minute + i*30)//60
+                                                slot_minute = (start_minute + i*30)%60
+                                                slot_label = f"{slot_hour:02d}:{slot_minute:02d}"
+                                                if slot_label in timetable.index and date_formatted in timetable.columns:
+                                                    val = timetable.at[slot_label, date_formatted]
+                                                    # 去重
+                                                    names = set([x.strip() for x in val.split(',') if x.strip()] + [facility_name])
+                                                    timetable.at[slot_label, date_formatted] = ', '.join(sorted(names))
+                st.markdown("---")
+                st.subheader("🗓️ 全部场地可用时间总览表")
+                st.dataframe(timetable, height=700, use_container_width=True)
 else:
     st.error("自动登录失败，无法查询场地信息！")
