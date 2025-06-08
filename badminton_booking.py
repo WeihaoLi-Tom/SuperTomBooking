@@ -3,7 +3,29 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import json
+import os
 from urllib.parse import urlencode
+
+def load_credentials():
+    """从配置文件加载用户凭据"""
+    config_file = 'credentials.json'
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"读取配置文件失败: {e}")
+    return None
+
+def save_credentials(username, password):
+    """保存用户凭据到配置文件"""
+    config_file = 'credentials.json'
+    try:
+        with open(config_file, 'w') as f:
+            json.dump({'username': username, 'password': password}, f)
+        print("✅ 凭据已保存")
+    except Exception as e:
+        print(f"保存配置文件失败: {e}")
 
 class MelbourneUniBadmintonBooking:
     def __init__(self):
@@ -353,13 +375,32 @@ class MelbourneUniBadmintonBooking:
 
 def main():
     booking = MelbourneUniBadmintonBooking()
-    # 自动登录信息
-    username = "你自己的账号！"
-    password = "密码密码！"
+    
+    # 尝试加载保存的凭据
+    credentials = load_credentials()
+    
+    if credentials:
+        print("📝 发现保存的登录信息")
+        use_saved = input("是否使用保存的登录信息？(y/n): ").lower().strip() == 'y'
+        if use_saved:
+            username = credentials['username']
+            password = credentials['password']
+        else:
+            username = input("请输入用户名: ").strip()
+            password = input("请输入密码: ").strip()
+    else:
+        username = input("请输入用户名: ").strip()
+        password = input("请输入密码: ").strip()
     
     if not booking.login(username, password):
         print("❌ 登录失败，程序退出。")
         return
+    
+    # 询问是否保存凭据
+    if not credentials or not use_saved:
+        save_choice = input("是否保存登录信息？(y/n): ").lower().strip() == 'y'
+        if save_choice:
+            save_credentials(username, password)
     
     print("🏸 墨尔本大学羽毛球馆预订查询")
     
