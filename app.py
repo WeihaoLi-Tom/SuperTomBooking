@@ -201,4 +201,4 @@ if st.session_state.is_logged_in:
                                     else:
                                         st.write(f"📅 {date_formatted}: 无可用时段")
 else:
-    st.info("�� 请先在左侧登录以查询场地信息") 
+    st.info("请先在左侧登录以查询场地信息") 
