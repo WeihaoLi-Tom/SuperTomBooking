@@ -52,7 +52,7 @@ class MelbourneUniBadmintonBooking:
         soup = BeautifulSoup(resp.text, 'html.parser')
         token_input = soup.find('input', {'name': '__RequestVerificationToken'})
         token = token_input['value'] if token_input else ''
-        # 这些id一般是页面固定的，也可以从页面js变量里提取
+        
         calendarId = "bce15730-1f38-4e5c-889c-856322a7f877"
         widgetId = "15f6af07-39c5-473e-b053-96653f77a406"
         mapId = "7d8b8d20-b7cf-43ac-8167-0738142baff3"
@@ -354,8 +354,8 @@ class MelbourneUniBadmintonBooking:
 def main():
     booking = MelbourneUniBadmintonBooking()
     # 自动登录信息
-    username = "lwh895556373@gmail.com"
-    password = "lwh1509128709"
+    username = "你自己的账号！"
+    password = "密码密码！"
     
     if not booking.login(username, password):
         print("❌ 登录失败，程序退出。")
