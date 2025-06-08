@@ -160,10 +160,13 @@ if st.session_state.is_logged_in:
                                     with st.container():
                                         st.markdown(f"#### 📅 {date_formatted}")
                                         if slot_info_list:
-                                            cols = st.columns(min(4, len(slot_info_list)))
-                                            for i, (slot, book_url) in enumerate(slot_info_list):
-                                                with cols[i % len(cols)]:
-                                                    st.markdown(f'<a href="{book_url}" target="_blank"><button style="width:100%;background:#1976d2;color:white;border:none;padding:0.5em 0.2em;border-radius:4px;cursor:pointer;">{slot}</button></a>', unsafe_allow_html=True)
+                                            for slot, book_url in slot_info_list:
+                                                st.markdown(
+                                                    f'<a href="{book_url}" target="_blank">'
+                                                    f'<button style="width:100%;background:#1976d2;color:white;border:none;padding:0.5em 0.2em;margin-bottom:0.5em;border-radius:4px;cursor:pointer;">'
+                                                    f'{slot}</button></a>',
+                                                    unsafe_allow_html=True
+                                                )
                                         else:
                                             st.markdown("<span style='color:red;'>无可用时段</span>", unsafe_allow_html=True)
 
