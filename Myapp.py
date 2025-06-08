@@ -133,6 +133,7 @@ if st.session_state.is_logged_in:
                                     date_formatted = st.session_state.booking.parse_date_from_json(date_raw)
                                     booking_groups = day_data.get('BookingGroups', [])
                                     day_slots = []
+                                    slot_info_list = []  # 新增：存储每个时段的详细信息
                                     for group in booking_groups:
                                         available_spots = group.get('AvailableSpots', [])
                                         for spot in available_spots:
@@ -149,15 +150,20 @@ if st.session_state.is_logged_in:
                                                     end_hour += 1
                                                     end_minute -= 60
                                                 end_time = f"{end_hour:02d}:{end_minute:02d}"
-                                                day_slots.append(f"{start_time}-{end_time}")
-
+                                                slot_label = f"{start_time}-{end_time}"
+                                                # 构造预订URL
+                                                arrival_date = f"{date_formatted}T{start_time}:00.000Z"
+                                                base_url = "https://unimelb.perfectmind.com/32617/Clients/BookMe4LandingPages/Facility"
+                                                params = f"facilityId={facility_id}&arrivalDate={arrival_date}"
+                                                book_url = f"{base_url}?{params}"
+                                                slot_info_list.append((slot_label, book_url))
                                     with st.container():
                                         st.markdown(f"#### 📅 {date_formatted}")
-                                        if day_slots:
-                                            cols = st.columns(min(4, len(day_slots)))
-                                            for i, slot in enumerate(day_slots):
+                                        if slot_info_list:
+                                            cols = st.columns(min(4, len(slot_info_list)))
+                                            for i, (slot, book_url) in enumerate(slot_info_list):
                                                 with cols[i % len(cols)]:
-                                                    st.button(slot, key=f"{facility_id}-{date_formatted}-{slot}", help="可用时段", disabled=True)
+                                                    st.markdown(f'<a href="{book_url}" target="_blank"><button style="width:100%;background:#1976d2;color:white;border:none;padding:0.5em 0.2em;border-radius:4px;cursor:pointer;">{slot}</button></a>', unsafe_allow_html=True)
                                         else:
                                             st.markdown("<span style='color:red;'>无可用时段</span>", unsafe_allow_html=True)
 
