@@ -5,7 +5,7 @@ import pandas as pd
 
 # 直接写死用户名和密码
 USERNAME = "lwh895556373@gmail.com"
-PASSWORD = "lwh1509128709"
+PASSWORD = "1349247"
 
 st.set_page_config(
     page_title="墨尔本大学羽毛球场地查询",
